@@ -1,9 +1,12 @@
 import os
 import yaml
+import sys
 
 from wand.image import Image
 from wand.font import Font
 from wand.color import Color
+
+from colorama import Fore
 
 
 def generate_framed_screenshot(output, text, color, font, size, bg, frm, scrn, offsets, text_offsets):
@@ -36,6 +39,7 @@ def generate_framed_screenshot(output, text, color, font, size, bg, frm, scrn, o
                                    font=font,
                                    gravity='center')
                 background.save(filename=output)
+                print(Fore.GREEN + '[OK] Screenshot ' + scrn + ' framed as ' + output)
 
 
 def value_or_default(arr, key):
@@ -60,20 +64,28 @@ with open('devices.yml', 'r') as conf_devices:
     except yaml.YAMLError as exc:
         print(exc)
 
+base_dir = sys.argv[1] if len(sys.argv) > 1 is not None else '.'
+
 # Each dir is locale
-locales = next(os.walk('.'))[1]
+locales = next(os.walk(base_dir))[1]
 for locale in locales:
-    screenshots = next(os.walk('./' + locale))[2]
+    screenshots = next(os.walk(base_dir + '/' + locale))[2]
     for screenshot in screenshots:
+        if '_framed' in screenshot:
+            continue
+
         splitted = screenshot.split('-')
         if len(splitted) < 3:
-            print('[FAIL] Invalid screenshot name for ' + screenshot)
+            print(Fore.RED + '[FAIL] Invalid screenshot name for ' + screenshot)
             continue
 
         name = splitted[-2]
         devices = [x for x in conf_devices if x["device"] == '-'.join(splitted[:-2])]
-        if len(devices) != 1:
-            print('[FAIL] More than one device for ' + screenshot)
+        if len(devices) == 0:
+            print(Fore.RED + '[FAIL] No devices for ' + screenshot)
+            continue
+        if len(devices) > 1:
+            print(Fore.RED + '[FAIL] More than one device for ' + screenshot)
             continue
 
         # Get params
@@ -81,7 +93,7 @@ for locale in locales:
         # Second level - locales (default)
         matched_presets = [x for x in config if x["name"] == name]
         if len(matched_presets) == 0:
-            print('[FAIL] No presets for ' + screenshot)
+            print(Fore.RED + '[FAIL] No presets for ' + screenshot)
             continue
         preset = matched_presets[0]
         device = devices[0]
@@ -93,8 +105,8 @@ for locale in locales:
         bg = value_or_default(value_or_default(preset["background"], device["size"]), locale)
         text_offsets = value_or_default(value_or_default(preset["caption"]["offsets"], device["size"]), locale)
 
-        filename = './' + locale + '/' + screenshot
-        new_filename = screenshot.split('.')[-2] + '_framed.' + screenshot.split('.')[-1]
+        filename = base_dir + '/' + locale + '/' + screenshot
+        new_filename = base_dir + '/' + locale + '/' + "{}_{}_{}_framed.{}".format(locale, device["device"], name, screenshot.split('.')[-1])
         generate_framed_screenshot(output=new_filename,
                                    text=text,
                                    color=color,
