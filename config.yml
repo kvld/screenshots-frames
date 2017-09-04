@@ -1,0 +1,29 @@
+-
+  name: 1card
+  caption:
+    text:
+      - default:
+        - en-US: 'Caption'
+        - ru-RU: 'Заголовок'
+      - 5.5:
+        - en-US: 'Caption1'
+        - ru-RU: 'Заголовок1'
+    size:
+      - default: 
+        - default: 0
+    font: 
+      - default: 
+        - default: HelveticaNeue-Medium.ttf
+    color:
+      - default:
+        - default: 'white'
+    offsets:
+      - default:
+        - default:
+            left: 55
+            right: 55
+            top: 60
+            bottom: 20
+  background: 
+    - default: 
+      - default: ./resources/bg.png
