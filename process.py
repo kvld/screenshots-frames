@@ -11,7 +11,6 @@ from colorama import Fore
 
 def generate_framed_screenshot(output, text, color, font, size, bg, frm, scrn, offsets, text_offsets):
     font = Font(path=font, size=size, color=Color(color))
-    screen_width = offsets["width"]
     offset_x = offsets["x"]
     offset_y = offsets["y"]
     offset_top = offsets["top"]
@@ -21,25 +20,23 @@ def generate_framed_screenshot(output, text, color, font, size, bg, frm, scrn, o
     text_top = text_offsets["top"]
     text_bottom = text_offsets["bottom"]
 
-    with Image(filename=bg) as background:
-        background.transform(resize=str(screen_width) + 'x')
-        with Image(filename=frm) as frame:
-            with Image(filename=scrn) as screen:
-                frame.composite(screen, left=offset_x, top=offset_y)
-                frame.transform(resize=str(screen_width) + 'x')
-                background.composite(frame, left=0, top=offset_top)
+    with Image(filename=bg) as background, Image(filename=frm) as frame, Image(filename=scrn) as screen:
+        background.crop(0, 0, width=screen.width, height=screen.height)
+        frame.composite(screen, left=offset_x, top=offset_y)
+        frame.transform(resize=str(screen.width) + 'x')
+        background.composite(frame, left=0, top=offset_top)
 
-                text_width = screen_width - text_left - text_right
-                text_height = offset_top - text_top - text_bottom
-                background.caption(text=text,
-                                   left=text_left,
-                                   top=text_right,
-                                   width=text_width,
-                                   height=text_height,
-                                   font=font,
-                                   gravity='center')
-                background.save(filename=output)
-                print(Fore.GREEN + '[OK] Screenshot ' + scrn + ' framed as ' + output)
+        text_width = screen.width - text_left - text_right
+        text_height = offset_top - text_top - text_bottom
+        background.caption(text=text,
+                           left=text_left,
+                           top=text_top,
+                           width=text_width,
+                           height=text_height,
+                           font=font,
+                           gravity='center')
+        background.save(filename=output)
+        print(Fore.GREEN + '[OK] Screenshot ' + scrn + ' framed as ' + output)
 
 
 def value_or_default(arr, key):
@@ -52,7 +49,9 @@ def value_or_default(arr, key):
     return None
 
 
-with open('config.yml', 'r') as config:
+base_dir = sys.argv[1] if len(sys.argv) > 1 is not None else '.'
+
+with open(base_dir + '/config.yml', 'r') as config:
     try:
         config = yaml.load(config)
     except yaml.YAMLError as exc:
@@ -63,8 +62,6 @@ with open('devices.yml', 'r') as conf_devices:
         conf_devices = yaml.load(conf_devices)
     except yaml.YAMLError as exc:
         print(exc)
-
-base_dir = sys.argv[1] if len(sys.argv) > 1 is not None else '.'
 
 # Each dir is locale
 locales = next(os.walk(base_dir))[1]
@@ -98,11 +95,11 @@ for locale in locales:
         preset = matched_presets[0]
         device = devices[0]
 
-        font = value_or_default(value_or_default(preset["caption"]["font"], device["size"]), locale)
+        font = base_dir + '/' + value_or_default(value_or_default(preset["caption"]["font"], device["size"]), locale)
         size = value_or_default(value_or_default(preset["caption"]["size"], device["size"]), locale)
         text = value_or_default(value_or_default(preset["caption"]["text"], device["size"]), locale)
         color = value_or_default(value_or_default(preset["caption"]["color"], device["size"]), locale)
-        bg = value_or_default(value_or_default(preset["background"], device["size"]), locale)
+        bg = base_dir + '/' + value_or_default(value_or_default(preset["background"], device["size"]), locale)
         text_offsets = value_or_default(value_or_default(preset["caption"]["offsets"], device["size"]), locale)
 
         filename = base_dir + '/' + locale + '/' + screenshot

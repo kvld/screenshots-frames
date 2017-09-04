@@ -1,21 +1,32 @@
 - 
   device: iPadPro(12.9-inch)
-  frame: ipadPro129.png
+  frame: ./devices/iPadPro_white_shadow.png
   size: 12.9
+  offsets:
+    x: 230
+    y: 380
+    top: 350
 - 
   device: iPhone5s
-  frame: iphone5s.png
+  frame: ./devices/iPhoneSE_white_shadow.png
   size: 4.0
+  offsets:
+    x: 109
+    y: 280
+    top: 180
 -
   device: iPhone7
-  frame: ./resources/iphone7.png
+  frame: ./devices/iPhone7_white_shadow.png
   size: 4.7
   offsets:
-    width: 750
     x: 120
     y: 300
     top: 200
 - 
   device: iPhone7Plus
-  frame: iphone7plus.png
+  frame: ./devices/iPhone7Plus_white_shadow.png
   size: 5.5
+  offsets:
+    x: 175
+    y: 451
+    top: 350
